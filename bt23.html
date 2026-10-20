@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đèn Kéo Quân 3D - Trung Thu Truyền Thống</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Merriweather & Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Charm:wght@400;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: radial-gradient(circle, #2b0308 0%, #120104 70%, #050001 100%);
+            color: #fce38a;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .font-traditional {
+            font-family: 'Charm', cursive;
+        }
+
+        /* 3D Carousel Stage */
+        .scene {
+            width: 100%;
+            height: 420px;
+            perspective: 1100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .carousel {
+            width: 210px;
+            height: 300px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s linear;
+        }
+
+        /* 6 Faces of Hexagon */
+        .carousel__face {
+            position: absolute;
+            width: 210px;
+            height: 300px;
+            left: 0;
+            top: 0;
+            border: 3px solid #f2ac00;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(40, 5, 10, 0.85);
+            box-shadow: 0 0 25px rgba(255, 170, 0, 0.45), inset 0 0 15px rgba(255, 215, 0, 0.3);
+            backface-visibility: visible;
+            transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .carousel__face:hover {
+            border-color: #ffffff;
+            box-shadow: 0 0 35px rgba(255, 230, 100, 0.9), inset 0 0 25px rgba(255, 215, 0, 0.6);
+        }
+
+        /* Calculating 6 sides of hexagon in 3D space: radius ~ 182px */
+        .carousel__face:nth-child(1) { transform: rotateY(  0deg) translateZ(182px); }
+        .carousel__face:nth-child(2) { transform: rotateY( 60deg) translateZ(182px); }
+        .carousel__face:nth-child(3) { transform: rotateY(120deg) translateZ(182px); }
+        .carousel__face:nth-child(4) { transform: rotateY(180deg) translateZ(182px); }
+        .carousel__face:nth-child(5) { transform: rotateY(240deg) translateZ(182px); }
+        .carousel__face:nth-child(6) { transform: rotateY(300deg) translateZ(182px); }
+
+        /* Inner glowing light effect inside lantern center */
+        .lantern-core-light {
+            position: absolute;
+            width: 120px;
+            height: 260px;
+            background: radial-gradient(circle, rgba(255,220,100,0.95) 0%, rgba(255,100,0,0.6) 50%, rgba(255,0,0,0) 80%);
+            border-radius: 50%;
+            filter: blur(15px);
+            animation: candleFlicker 1.8s infinite alternate ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes candleFlicker {
+            0% { opacity: 0.75; transform: scale(0.95); }
+            50% { opacity: 1.0; transform: scale(1.05); }
+            100% { opacity: 0.85; transform: scale(0.98); }
+        }
+
+        /* Gold tassel decorations */
+        .tassel {
+            width: 4px;
+            height: 60px;
+            background: linear-gradient(to bottom, #ffd700, #d4af37, #b8860b);
+            margin: 0 auto;
+            position: relative;
+        }
+        .tassel::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: -8px;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #ffd700 30%, #8b0000 70%);
+            border-radius: 50%;
+        }
+
+        /* Glowing text effects */
+        .glow-title {
+            text-shadow: 0 0 10px #ff2a2a, 0 0 20px #ffd700, 0 0 30px #ff2a2a;
+        }
+
+        /* Modal overlay for photo view */
+        .modal-active {
+            display: flex !important;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen justify-between items-center p-4">
+
+    <!-- TOP HEADER / STUDENT INFORMATION BANNER -->
+    <header class="w-full max-w-5xl my-2 p-4 bg-gradient-to-r from-red-950 via-yellow-950 to-red-950 border-2 border-amber-500/60 rounded-2xl shadow-2xl flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="p-3 bg-red-900/80 border border-amber-400 rounded-full text-amber-300 text-2xl animate-pulse">
+                <i class="fa-solid fa-lantern"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold font-traditional text-amber-300 glow-title">Đèn Kéo Quân 3D - Bài Tập 23</h1>
+                <p class="text-xs md:text-sm text-amber-200/80">Trang Chủ Index - Lập Trình Web Interactive</p>
+            </div>
+        </div>
+
+        <!-- Student Information Container (Dành cho chụp ảnh báo cáo) -->
+        <div class="bg-black/60 border border-amber-400/80 rounded-xl px-5 py-2.5 text-center md:text-right shadow-inner">
+            <div class="text-xs text-amber-400 uppercase tracking-widest font-semibold mb-0.5">Mã Sinh Viên & Họ Tên</div>
+            <div class="text-lg font-extrabold text-white flex items-center justify-center md:justify-end gap-2">
+                <i class="fa-solid fa-id-card text-amber-400 text-sm"></i>
+                <span id="student-id-display" class="text-yellow-300">MSV231A010425</span>
+                <span class="text-amber-500">|</span>
+                <span id="student-name-display" class="text-white">Lê Hoàng Phúc</span>
+            </div>
+            <button onclick="editStudentInfo()" class="mt-1 text-[11px] text-amber-300 hover:text-white underline inline-flex items-center gap-1">
+                <i class="fa-solid fa-pen-to-square"></i> Đổi MSSV / Họ Tên
+            </button>
+        </div>
+    </header>
+
+    <!-- NAVIGATION MENU (Chứa link hiển thị kết quả Bài Tập 22 & Đèn Kéo Quân) -->
+    <nav class="w-full max-w-5xl mb-4 bg-red-950/70 border border-amber-500/40 rounded-xl p-2 flex justify-center gap-4 text-sm font-semibold">
+        <button onclick="switchTab('lantern')" id="tab-btn-lantern" class="px-5 py-2 rounded-lg bg-amber-500 text-red-950 shadow-md font-bold transition">
+            <i class="fa-solid fa-gear spin-slow"></i> Đèn Kéo Quân 3D (Bài 23)
+        </button>
+        <button onclick="switchTab('ex22')" id="tab-btn-ex22" class="px-5 py-2 rounded-lg bg-red-900/60 text-amber-200 hover:bg-amber-500/20 transition border border-amber-500/30">
+            <i class="fa-solid fa-diagram-project"></i> Kết Quả Bài Tập 22
+        </button>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="w-full max-w-5xl flex-grow flex flex-col justify-center items-center relative">
+
+        <!-- VIEW 1: ĐÈN KÉO QUÂN 3D -->
+        <section id="view-lantern" class="w-full flex flex-col items-center">
+            
+            <!-- Hover status indicator -->
+            <div class="mb-3 px-4 py-1.5 rounded-full bg-black/50 border border-amber-500/30 text-xs md:text-sm text-amber-300 flex items-center gap-2">
+                <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-green-500 animate-ping"></span>
+                <span id="status-text">Đang xoay tự động (Di chuột vào đèn để TẠM DỪNG)</span>
+            </div>
+
+            <!-- LANTERN CONTAINER -->
+            <div id="lantern-wrapper" class="relative my-4 p-6 flex flex-col items-center justify-center">
+                
+                <!-- Lantern Top Crown -->
+                <div class="w-48 h-8 bg-gradient-to-r from-yellow-600 via-amber-300 to-yellow-600 rounded-t-2xl border-t-2 border-yellow-200 shadow-lg flex justify-center items-center z-10">
+                    <div class="w-32 h-2 bg-red-900 rounded-full"></div>
+                </div>
+                <div class="w-56 h-3 bg-red-900 border-y border-amber-400 z-10"></div>
+
+                <!-- 3D Carousel Scene -->
+                <div class="scene" id="scene-box">
+                    <!-- Central Candle/Lantern Light Glow -->
+                    <div class="lantern-core-light"></div>
+
+                    <!-- 3D Hexagon Carousel -->
+                    <div class="carousel" id="carousel">
+                        <!-- 6 Faces rendered by Javascript -->
+                    </div>
+                </div>
+
+                <!-- Lantern Bottom Base -->
+                <div class="w-56 h-3 bg-red-900 border-y border-amber-400 z-10"></div>
+                <div class="w-48 h-8 bg-gradient-to-r from-yellow-600 via-amber-300 to-yellow-600 rounded-b-2xl border-b-2 border-yellow-200 shadow-lg flex justify-center items-center z-10">
+                    <div class="w-32 h-2 bg-red-900 rounded-full"></div>
+                </div>
+
+                <!-- Bottom Tassel Decoration -->
+                <div class="tassel mt-1"></div>
+            </div>
+
+            <!-- CONTROLS PANEL (Nút điều khiển bổ sung) -->
+            <div class="w-full max-w-xl mt-4 p-4 bg-black/60 border border-amber-500/40 rounded-2xl shadow-xl flex flex-wrap justify-around items-center gap-3 text-xs md:text-sm">
+                
+                <!-- Play / Pause Manual Button -->
+                <button id="btn-toggle-play" onclick="togglePlayPauseManual()" class="px-4 py-2 bg-amber-500 text-red-950 font-bold rounded-lg hover:bg-amber-400 transition flex items-center gap-2">
+                    <i id="btn-play-icon" class="fa-solid fa-pause"></i> <span id="btn-play-label">Tạm Dừng</span>
+                </button>
+
+                <!-- Speed Control -->
+                <div class="flex items-center gap-2 bg-red-950/80 px-3 py-1.5 rounded-lg border border-amber-500/30">
+                    <i class="fa-solid fa-gauge-high text-amber-400"></i>
+                    <span class="text-amber-200 font-semibold">Tốc độ:</span>
+                    <button onclick="adjustSpeed(-0.2)" class="px-2 py-0.5 bg-amber-500/20 hover:bg-amber-500/40 border border-amber-400 rounded text-amber-300 font-bold">-</button>
+                    <span id="speed-display" class="font-mono text-amber-300 w-8 text-center">1.0x</span>
+                    <button onclick="adjustSpeed(0.2)" class="px-2 py-0.5 bg-amber-500/20 hover:bg-amber-500/40 border border-amber-400 rounded text-amber-300 font-bold">+</button>
+                </div>
+
+                <!-- Direction Toggle -->
+                <button onclick="toggleDirection()" class="px-4 py-2 bg-red-900/80 hover:bg-red-800 text-amber-300 font-semibold rounded-lg border border-amber-500/40 transition flex items-center gap-2">
+                    <i class="fa-solid fa-rotate"></i> Đổi Hướng
+                </button>
+
+                <!-- Custom Image Upload Toggle -->
+                <button onclick="document.getElementById('image-uploader').click()" class="px-4 py-2 bg-amber-900/60 hover:bg-amber-800 text-amber-200 text-xs rounded-lg border border-amber-500/30 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-upload"></i> Thay 6 Ảnh Bạn
+                </button>
+                <input type="file" id="image-uploader" multiple accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+            </div>
+        </section>
+
+        <!-- VIEW 2: KẾT QUẢ BÀI TẬP 22 -->
+        <section id="view-ex22" class="w-full flex-col items-center hidden">
+            <div class="w-full bg-black/60 border border-amber-500/50 rounded-2xl p-6 text-center shadow-2xl">
+                <h2 class="text-2xl font-bold text-amber-300 mb-2 font-traditional">Kết Quả Báo Cáo Bài Tập 22</h2>
+                <p class="text-sm text-amber-100/80 mb-6">Trang hiển thị tổng hợp nội dung / kết quả hình ảnh thực hiện từ Bài tập 22</p>
+
+                <!-- Image / Content Preview Container for Exercise 22 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-4 text-left">
+                    <div class="bg-red-950/40 p-4 border border-amber-500/30 rounded-xl">
+                        <h3 class="text-amber-400 font-bold mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-image"></i> Ảnh Chụp Kết Quả Chạy Bài 22
+                        </h3>
+                        <div class="w-full h-64 bg-black/80 border border-amber-500/20 rounded-lg flex items-center justify-center overflow-hidden relative group">
+                            <img id="ex22-preview-img" src="https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=800&q=80" alt="Bài Tập 22" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                <span class="text-xs text-amber-300 bg-red-950 px-3 py-1.5 rounded border border-amber-400">Hình Minh Họa Kết Quả Bài 22</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-red-950/40 p-4 border border-amber-500/30 rounded-xl flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-amber-400 font-bold mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-info"></i> Thông Tin Ghi Chú Bài 22
+                            </h3>
+                            <ul class="text-sm text-amber-100/90 space-y-2 list-disc list-inside">
+                                <li>Hoàn thành thiết kế giao diện chức năng bài tập trước.</li>
+                                <li>Tích hợp responsive layout thích ứng thiết bị di động.</li>
+                                <li>Đã kiểm tra liên kết trực tiếp trên máy chủ Netlify hosting.</li>
+                                <li>Đạt các tiêu chí tối ưu hóa hình ảnh & trải nghiệm người dùng.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mt-6 pt-4 border-t border-amber-500/20 flex flex-wrap gap-3">
+                            <button onclick="document.getElementById('ex22-uploader').click()" class="px-3 py-2 bg-amber-500 text-red-950 font-bold text-xs rounded hover:bg-amber-400 transition">
+                                <i class="fa-solid fa-file-arrow-up"></i> Tải Ảnh Kết Quả Bài 22
+                            </button>
+                            <input type="file" id="ex22-uploader" accept="image/*" class="hidden" onchange="uploadEx22Image(event)">
+                            <button onclick="switchTab('lantern')" class="px-3 py-2 bg-red-900 hover:bg-red-800 text-amber-200 text-xs rounded border border-amber-400/40 transition">
+                                Quay lại Đèn Kéo Quân <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FULLSCREEN PHOTO MODAL -->
+    <div id="photo-modal" class="fixed inset-0 bg-black/90 z-50 hidden justify-center items-center p-4">
+        <div class="relative max-w-3xl w-full bg-red-950 border-2 border-amber-400 rounded-2xl p-4 flex flex-col items-center">
+            <button onclick="closeModal()" class="absolute top-3 right-3 text-amber-300 hover:text-white text-2xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 id="modal-title" class="text-xl font-bold text-amber-300 mb-3 font-traditional">Mặt Đèn Kéo Quân</h3>
+            <img id="modal-img" src="" alt="Zoom Photo" class="max-h-[70vh] rounded-lg border border-amber-500/40 object-contain">
+            <p id="modal-desc" class="text-sm text-amber-200 mt-3 italic text-center"></p>
+        </div>
+    </div>
+
+    <!-- FOOTER / INSTRUCTIONS -->
+    <footer class="w-full max-w-5xl mt-6 pt-3 border-t border-amber-500/30 text-center text-xs text-amber-300/70">
+        <p>© 2026 Bài Tập Lập Trình Web - Đèn Kéo Quân 3D JavaScript | Sẵn sàng deploy Netlify</p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // 1. Initial Default Data: 6 Photos for the Lantern Faces
+        const defaultImages = [
+            { url: 'https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?auto=format&fit=crop&w=600&q=80', title: 'Mặt 1: Đêm Hội Tản Viên' },
+            { url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80', title: 'Mặt 2: Lung Linh Ánh Đèn' },
+            { url: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=600&q=80', title: 'Mặt 3: Sắc Màu Lễ Hội' },
+            { url: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80', title: 'Mặt 4: Phố Cổ Rực Rỡ' },
+            { url: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=600&q=80', title: 'Mặt 5: Trăng Rằm Tháng Tám' },
+            { url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80', title: 'Mặt 6: Hoa Đăng Cầu An' }
+        ];
+
+        let lanternFaces = [...defaultImages];
+
+        // 2. Carousel Control Variables
+        let currentAngle = 0;
+        let speed = 0.6; // rotation speed per frame
+        let direction = 1; // 1 = clockwise, -1 = counter-clockwise
+        let isPlaying = true;
+        let isHovered = false;
+        let animationFrameId = null;
+
+        // Elements
+        const carousel = document.getElementById('carousel');
+        const lanternWrapper = document.getElementById('lantern-wrapper');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        const speedDisplay = document.getElementById('speed-display');
+
+        // 3. Render 6 Faces of Hexagon
+        function renderLanternFaces() {
+            carousel.innerHTML = '';
+            lanternFaces.forEach((item, index) => {
+                const face = document.createElement('div');
+                face.className = 'carousel__face flex flex-col justify-between p-2';
+                
+                face.innerHTML = `
+                    <!-- Header number badge -->
+                    <div class="flex justify-between items-center bg-red-950/90 px-2 py-1 rounded border border-amber-400/50">
+                        <span class="text-[11px] font-bold text-amber-300">Mặt 0${index + 1}</span>
+                        <i class="fa-solid fa-star text-[10px] text-yellow-400"></i>
+                    </div>
+
+                    <!-- Main Image -->
+                    <div class="w-full h-48 my-1 rounded border border-amber-500/30 overflow-hidden relative">
+                        <img src="${item.url}" alt="${item.title}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                    </div>
+
+                    <!-- Footer label -->
+                    <div class="bg-black/70 px-2 py-1 rounded text-center border border-amber-500/20">
+                        <p class="text-[11px] font-semibold text-amber-200 truncate">${item.title}</p>
+                    </div>
+                `;
+
+                // Click face to view enlarged photo
+                face.addEventListener('click', () => openModal(item.url, item.title));
+
+                carousel.appendChild(face);
+            });
+        }
+
+        // 4. Animation Loop Function
+        function rotateCarousel() {
+            if (isPlaying && !isHovered) {
+                currentAngle += speed * direction;
+                carousel.style.transform = `rotateY(${currentAngle}deg)`;
+            }
+            animationFrameId = requestAnimationFrame(rotateCarousel);
+        }
+
+        // 5. Hover Pause / Resume Event Handlers
+        lanternWrapper.addEventListener('mouseenter', () => {
+            isHovered = true;
+            updateStatusUI();
+        });
+
+        lanternWrapper.addEventListener('mouseleave', () => {
+            isHovered = false;
+            updateStatusUI();
+        });
+
+        function updateStatusUI() {
+            if (!isPlaying) {
+                statusDot.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
+                statusText.textContent = 'Đã dừng quay (Thủ công)';
+            } else if (isHovered) {
+                statusDot.className = 'w-2.5 h-2.5 rounded-full bg-yellow-400 animate-bounce';
+                statusText.textContent = 'Đang TẠM DỪNG (Do rê chuột vào đèn)';
+            } else {
+                statusDot.className = 'w-2.5 h-2.5 rounded-full bg-green-500 animate-ping';
+                statusText.textContent = 'Đang xoay tự động (Di chuột vào đèn để TẠM DỪNG)';
+            }
+        }
+
+        // 6. Manual Controls
+        function togglePlayPauseManual() {
+            isPlaying = !isPlaying;
+            const btnIcon = document.getElementById('btn-play-icon');
+            const btnLabel = document.getElementById('btn-play-label');
+
+            if (isPlaying) {
+                btnIcon.className = 'fa-solid fa-pause';
+                btnLabel.textContent = 'Tạm Dừng';
+            } else {
+                btnIcon.className = 'fa-solid fa-play';
+                btnLabel.textContent = 'Tiếp Tục';
+            }
+            updateStatusUI();
+        }
+
+        function adjustSpeed(delta) {
+            let newSpeed = parseFloat((speed + delta).toFixed(1));
+            if (newSpeed >= 0.2 && newSpeed <= 3.0) {
+                speed = newSpeed;
+                speedDisplay.textContent = speed.toFixed(1) + 'x';
+            }
+        }
+
+        function toggleDirection() {
+            direction *= -1;
+        }
+
+        // 7. Student Info Edit Handler
+        function editStudentInfo() {
+            const newID = prompt('Nhập Mã Số Sinh Viên (MSSV):', document.getElementById('student-id-display').textContent);
+            const newName = prompt('Nhập Họ và Tên sinh viên:', document.getElementById('student-name-display').textContent);
+            
+            if (newID && newID.trim() !== '') {
+                document.getElementById('student-id-display').textContent = newID.trim();
+            }
+            if (newName && newName.trim() !== '') {
+                document.getElementById('student-name-display').textContent = newName.trim();
+            }
+        }
+
+        // 8. Custom 6 Images Upload Handler
+        function handleImageUpload(event) {
+            const files = event.target.files;
+            if (files.length === 0) return;
+
+            if (files.length < 6) {
+                alert('Vui lòng chọn đủ 6 hình ảnh để hiển thị lên 6 mặt đèn kéo quân!');
+                return;
+            }
+
+            const newFaces = [];
+            for (let i = 0; i < 6; i++) {
+                const reader = new FileReader();
+                const file = files[i];
+                reader.onload = function (e) {
+                    newFaces.push({
+                        url: e.target.result,
+                        title: `Ảnh ${i + 1}: ${file.name}`
+                    });
+
+                    if (newFaces.length === 6) {
+                        lanternFaces = newFaces;
+                        renderLanternFaces();
+                        alert('Đã cập nhật thành công 6 ảnh chụp của bạn lên 6 mặt đèn kéo quân!');
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 9. Upload image for Exercise 22 result
+        function uploadEx22Image(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('ex22-preview-img').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 10. Navigation Tabs Switcher
+        function switchTab(tab) {
+            const viewLantern = document.getElementById('view-lantern');
+            const viewEx22 = document.getElementById('view-ex22');
+            const btnLantern = document.getElementById('tab-btn-lantern');
+            const btnEx22 = document.getElementById('tab-btn-ex22');
+
+            if (tab === 'lantern') {
+                viewLantern.classList.remove('hidden');
+                viewEx22.classList.add('hidden');
+                btnLantern.className = 'px-5 py-2 rounded-lg bg-amber-500 text-red-950 shadow-md font-bold transition';
+                btnEx22.className = 'px-5 py-2 rounded-lg bg-red-900/60 text-amber-200 hover:bg-amber-500/20 transition border border-amber-500/30';
+            } else {
+                viewLantern.classList.add('hidden');
+                viewEx22.classList.remove('hidden');
+                viewEx22.classList.add('flex');
+                btnEx22.className = 'px-5 py-2 rounded-lg bg-amber-500 text-red-950 shadow-md font-bold transition';
+                btnLantern.className = 'px-5 py-2 rounded-lg bg-red-900/60 text-amber-200 hover:bg-amber-500/20 transition border border-amber-500/30';
+            }
+        }
+
+        // 11. Modal Window Functions
+        function openModal(url, title) {
+            document.getElementById('modal-img').src = url;
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-desc').textContent = 'Hình ảnh phóng to từ đèn kéo quân 3D';
+            document.getElementById('photo-modal').classList.remove('hidden');
+            document.getElementById('photo-modal').classList.add('flex');
+}
+
+        function closeModal() {
+            document.getElementById('photo-modal').classList.add('hidden');
+            document.getElementById('photo-modal').classList.remove('flex');
+        }
+
+        // 12. Initialize application on window load
+        window.onload = function() {
+            renderLanternFaces();
+            rotateCarousel();
+        };
+    </script>
+</body>
+</html>
